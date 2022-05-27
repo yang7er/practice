@@ -1,0 +1,164 @@
+---
+title: "The relationship between fertility rates and women's rights"
+author: "ShiJingYi"
+output:
+  bookdown::html_document2: default
+  bookdown::pdf_document2: default
+keep_md: true 
+date: '2022-04-22'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      eval = TRUE, 
+                      cache = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      fig.align = "center",
+                      fig.path = "Figures/")
+```
+
+```{r echo=FALSE}
+library(tidyverse)
+library(readr)
+library(ggplot2)
+library(knitr)
+library(bookdown)
+library(gridExtra)
+```
+
+# Introduction
+
+In recent years, the world's population has become progressively less fertile, with the global average fertility rate below 2.5 children per woman. Compared to the past fifty years, global fertility has been cut in half. Roser (2020) believed that the three major reasons for lower fertility are the empowerment of women (increased access to education and labor market participation), declining child mortality, and the rising cost of raising children (which is helped by the decline in child labor). In addition, Becker (2010) said that as women increasingly participate in the labour market their opportunity costs for having children are rising so that they seek to have fewer children. In this report, only the correlation between the rise in women's empowerment (increased access to education and labor market participation) and fertility becoming lower will be discussed. ***This report will analyze and visualize changes in the correlation between fertility rates and women's rights using a year-over-year analysis.***
+
+# Main body
+
+## Read data
+
+```{r}
+Final_data <- read_csv("data/Final_data.csv")
+```
+
+## Summarize average data
+
+```{r mean_data}
+Mean_data <- Final_data %>% 
+  group_by(Year) %>% 
+  summarise(AvgFertility = mean(Total_fertility),
+            AvgSchyear = mean(Mean_years_schooling),
+            AvgLabrate = mean(Labor_force_participation_rate))
+```
+
+## Table for average data
+
+In Table \@ref(tab:meantable), it shows the results of the world average fertility rate, labor force participation rate for female, and mean years of schooling for female from 1960 to 2010.
+
+```{r meantable}
+Mean_data %>% 
+  kable(caption = "Summary of average of Fertility, Labor force participation rate, and Mean years schooling in the whole world from 1960 to 2010.")
+```
+
+## Visualization for average data
+
+```{r avgplot,fig.cap = "world average rate folding graph (1960-2010)."}
+rate_plot <- Mean_data %>% 
+  pivot_longer(cols = c(2:4),
+               names_to = "Type",
+               values_to = "AvgRate")
+ggplot(rate_plot)+
+      geom_line(mapping=aes(x= Year,y=AvgRate,color=Type))
+```
+
+The graph\@ref(fig:avgplot) shows that after 1970, the fertility rate slowly decreases, while the female labor rate, as well as the average number of years of schooling, is increasing each year.
+
+## Whether relevance matters in countries with different development situations
+
+It is assumed that the correlation between the two rates is the same in countries with different developmental situations. Therefore, this report selects 2 developing countries （Argentina, Philippines）, and 2 developed countries （Switzerland, United States） to make relevant graphs for comparison.
+
+```{r 4_particular_countries}
+Part_data <- Final_data %>% 
+  filter(Country %in%
+           c("Switzerland","United States","Argentina","Philippines"),
+         Year >= 1990,
+         Year <= 2010)
+```
+
+## Table for 4 countries' data
+
+In Table \@ref(tab:4countriestable), it shows the fertility rate, labor force participation rate for female, and mean years of schooling for female in 4 countries from 1990 to 2010.
+
+```{r 4countriestable}
+Part_data%>% 
+  group_by(Year) %>% 
+  kable(caption = "Summary of Fertility, Labor force participation rate, and Mean years schooling in 2 developing countries and developed countries from 1990 to 2010.")
+```
+
+## Visualization for 4 countries' data
+
+```{r 4countriesplot,fig.cap = "the fertility rate compared the labor force participation rate and the average number of years of schooling respectively in developing and developed countries"}
+P1 <- ggplot(Part_data,
+             aes(x = Year ))+
+  geom_bar(aes(y = Labor_force_participation_rate),stat="identity",
+           fill="#69b3a2")+
+  geom_line(aes(y=Total_fertility*10),
+            color="#E69F00",
+            size=1)+
+  geom_point(aes(y=Total_fertility*10),
+             color="#E69F00",
+             size=2)+
+  scale_y_continuous(name = "Labor force particpation rate",
+                     sec.axis = sec_axis(trans =~.,
+                        name = "Fertility rate"))+
+  theme(axis.text.x = element_text(angle = 90))+
+  facet_grid(~Country)
+
+P2 <- ggplot(Part_data,
+             aes(x = Year ))+
+  geom_bar(aes(y = Mean_years_schooling),stat="identity",
+           fill="#69b3a2")+
+  geom_line(aes(y=Total_fertility),
+            color="#E69F00",
+            size=1)+
+  geom_point(aes(y=Total_fertility),
+             color="#E69F00",
+             size=2)+
+  scale_y_continuous(name = "Mean years schooling",
+                     sec.axis = sec_axis(trans =~.,
+                        name = "Fertility rate"))+
+  theme(axis.text.x = element_text(angle = 90))+
+  facet_grid(~Country)
+
+gridExtra::grid.arrange(P1, P2, nrow=1)
+```
+
+A visualization of the fertility rate versus the labor force participation rate and the average number of years of schooling, respectively, is produced. The graph\@ref(fig:4countriesplot) shows a decreasing trend in the birth rate in Argentina Switzerland USA as the female labor force participation rate increases. As the average number of years of schooling for females increases, all four countries show a decreasing trend in birth rates.
+
+# Conclusion
+
+*In conclusion, as the responsibility for childbearing and, in most cases, child-rearing rests with women, it is not unexpected that fertility rates tend to be higher where women have lower social positions and fewer opportunities outside the home.* This will change only when there is a greater focus on women's interests. ***Better education for women and more employment opportunities for women both change women's social roles and improve their social status.*** With more outside options to have large numbers of children, women increasingly choose to take advantage of those options and, as a result, total fertility rates decline. This can lead to a virtuous circle, as lower fertility rates give women the freedom to do things other than have children, which in turn leads to lower fertility rates.
+
+The benefit of this is that these changes are desirable in their own right. ***This clearly shows that one of the best strategies for achieving lower fertility is to work to reduce gender inequality and to support women's empowerment and advancement relative to men in terms of their power, status and education.***
+
+# Reference
+
+Roser, M. (2022). *Fertility Rate*. Our World in Data. Retrieved 23 April 2022, from <https://ourworldindata.org/fertility-rate#citation>.
+
+Becker, S., Cinnirella, F., & Woessmann, L. (2010). The trade-off between fertility and education: evidence from before the demographic transition. *Journal Of Economic Growth*, *15*(3), 177-204. <https://doi.org/10.1007/s10887-010-9054-x>
+
+**Data sources**：
+
+World Population Prospects - Population Division - United Nations. Population.un.org. (2022). Retrieved 22 April 2022, from <https://population.un.org/wpp2019/Download/Standard/Fertility/>.
+
+**R package**：
+
+Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686, <https://doi.org/10.21105/joss.01686>
+
+Hadley Wickham, Jim Hester and Jennifer Bryan (2022). readr: Read Rectangular Text Data. R package version 2.1.2. <https://CRAN.R-project.org/package=readr>
+
+H. Wickham. ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York, 2016.
+
+Yihui Xie (2014) knitr: A Comprehensive Tool for Reproducible Research in R. In Victoria Stodden, Friedrich Leisch and Roger D. Peng, editors, Implementing Reproducible Computational Research. Chapman and Hall/CRC. ISBN 978-1466561595
+
+Yihui Xie (2022). bookdown: Authoring Books and Technical Documents with R Markdown. R package version 0.25.
+
+Baptiste Auguie (2017). gridExtra: Miscellaneous Functions for "Grid" Graphics. R package version 2.3. <https://CRAN.R-project.org/package=gridExtra>
